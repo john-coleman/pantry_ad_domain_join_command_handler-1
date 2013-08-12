@@ -1,0 +1,20 @@
+<%= @app_environment %>:
+  aws:
+    access_key_id: <%= @aws_access_key_id %>
+    secret_access_key: <%= @aws_secret_access_key %>
+    region: <%= @aws_region %>
+  daemon:
+    app_name: <%= @daemon_name %>
+    backtrace: <%= @backtrace %>
+    dir_mode: <%= @dir_mode %>
+    dir: <%= @dir %>
+    monitor: <%= @monitor %>
+  pantry:
+    api_key: <%= @pantry_api_key %>
+    request_timeout: <%= @pantry_request_timeout %>
+    url: <%= @pantry_url %>
+  sns:
+    topic_arn: <%= @topic_arn %>
+    error_arn: <%= @error_arn %>
+  sqs:
+    queue_name: <%= @queue_name %>
