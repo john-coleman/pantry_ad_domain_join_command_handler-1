@@ -1,4 +1,6 @@
 require 'wonga/daemon/win_rm_runner'
+require 'wonga/daemon/aws_resource'
+require 'aws-sdk'
 
 module Wonga
   module Daemon
@@ -11,6 +13,9 @@ module Wonga
       end
 
       def handle_message(message)
+        instance = AWSResource.new.find_server_by_id(message["instance_id"])
+        return unless instance.platform == 'windows'
+
         runner = WinRMRunner.new
         runner.add_host(message['private_ip'], 'Administrator', message['windows_admin_password'])
 
@@ -27,6 +32,9 @@ module Wonga
         runner.run_commands(rename_cmd, netdom_join_cmd, netdom_rename_cmd) do |host, data|
           @logger.info data
         end
+
+        @logger.info "Reboot instance #{instance.id}"
+        instance.reboot
         @publisher.publish message
       end
     end

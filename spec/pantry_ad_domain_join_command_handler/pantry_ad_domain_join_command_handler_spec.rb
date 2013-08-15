@@ -35,10 +35,13 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
   it_behaves_like "handler"
 
   describe "#handle_message" do
+    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows").as_null_object }
     let(:win_rm_runner) { instance_double('Wonga::Daemon::WinRMRunner').as_null_object }
+    let(:aws_resource) { instance_double("Wonga::Daemon::AWSResource", find_server_by_id: instance) }
 
     before(:each) do
       Wonga::Daemon::WinRMRunner.stub(:new).and_return(win_rm_runner)
+      Wonga::Daemon::AWSResource.stub(:new).and_return(aws_resource)
     end
 
     include_examples "send message"
@@ -56,6 +59,30 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
     it "creates new win_rm_runner for each message" do
       2.times { subject.handle_message(message) }
       expect(Wonga::Daemon::WinRMRunner).to have_received(:new).twice
+    end
+
+    it "reboots machine" do
+      subject.handle_message message
+      expect(instance).to have_received(:reboot)
+    end
+
+    context "for linux machine" do
+      let(:instance) { instance_double("AWS::EC2::Instance", platform: 'linux') }
+
+      it "doesn't create WinRMRunner" do
+        subject.handle_message(message)
+        expect(Wonga::Daemon::WinRMRunner).to_not have_received(:new)
+      end
+
+      it "doesn't publish a message" do
+        subject.handle_message(message)
+        expect(publisher).to_not have_received(:publish)
+      end
+
+      it "doesn't reboot machine" do
+        expect(instance).to_not receive(:reboot)
+        subject.handle_message(message)
+      end
     end
   end
 end
