@@ -76,7 +76,7 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
 
       it "doesn't publish a message" do
         subject.handle_message(message)
-        expect(publisher).to_not have_received(:publish)
+        expect(publisher).to have_received(:publish)
       end
 
       it "doesn't reboot machine" do

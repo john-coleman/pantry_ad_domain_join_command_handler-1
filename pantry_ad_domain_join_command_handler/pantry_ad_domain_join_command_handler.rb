@@ -14,7 +14,11 @@ module Wonga
 
       def handle_message(message)
         instance = AWSResource.new.find_server_by_id(message["instance_id"])
-        return unless instance.platform == 'windows'
+        if instance.platform == 'linux'
+          @logger.info "Received message for linux instance. Raising event and exiting"
+          @publisher.publish message
+          return
+        end
 
         runner = WinRMRunner.new
         runner.add_host(message['private_ip'], 'Administrator', message['windows_admin_password'])
