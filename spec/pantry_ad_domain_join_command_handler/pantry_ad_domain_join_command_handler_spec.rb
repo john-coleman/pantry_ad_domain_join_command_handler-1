@@ -67,16 +67,13 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
     end
 
     context "for linux machine" do
-      let(:instance) { instance_double("AWS::EC2::Instance", platform: 'linux') }
+      let(:instance) { instance_double("AWS::EC2::Instance", platform: '') }
+
+      include_examples "send message"
 
       it "doesn't create WinRMRunner" do
         subject.handle_message(message)
         expect(Wonga::Daemon::WinRMRunner).to_not have_received(:new)
-      end
-
-      it "doesn't publish a message" do
-        subject.handle_message(message)
-        expect(publisher).to have_received(:publish)
       end
 
       it "doesn't reboot machine" do
