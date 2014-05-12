@@ -15,6 +15,7 @@ module Wonga
 
       def handle_message(message)
         instance = AWSResource.new.find_server_by_id(message["instance_id"])
+        return unless instance.exists? && instance.status != :terminated
         if instance.platform != 'windows'
           @logger.info "Received message for linux instance. Raising event and exiting"
           @publisher.publish message

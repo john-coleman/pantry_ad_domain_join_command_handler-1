@@ -38,7 +38,7 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
   describe "#handle_message" do
 
     context "for windows machine" do
-      let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows").as_null_object }
+      let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows", :exists? => true, status: '') }
       let(:aws_resource) { instance_double("Wonga::Daemon::AWSResource", find_server_by_id: instance) }
 
       before(:each) do
@@ -79,12 +79,38 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
           subject.handle_message message
           expect(subject).to have_received(:winrm_set_hostname)
         end
+      end
 
+      context "when instance doesn't exists" do
+        let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows", :exists? => false, status: '') }
+
+        it "doesn't create WinRMRunner" do
+          subject.handle_message(message)
+          expect(Wonga::Daemon::WinRMRunner).to_not have_received(:new)
+        end
+
+        it "doesn't reboot machine" do
+          subject.handle_message(message)
+          expect(instance).to_not receive(:reboot)
+        end
+      end
+
+      context "when instance is terminated" do
+        let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows", :exists? => true, status: :terminated) }
+
+        it "doesn't create WinRMRunner" do
+          subject.handle_message(message)
+          expect(Wonga::Daemon::WinRMRunner).to_not have_received(:new)
+        end
+
+        it "doesn't reboot machine" do
+          subject.handle_message(message)
+          expect(instance).to_not receive(:reboot)
+        end
       end
     end
 
     context "for linux machine" do
-      let(:instance) { instance_double("AWS::EC2::Instance", platform: "") }
       let(:aws_resource) { instance_double("Wonga::Daemon::AWSResource", find_server_by_id: instance) }
 
       before(:each) do
@@ -96,20 +122,24 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
         subject.stub(:winrm_get_domain_state)
       end
 
-      it "doesn't create WinRMRunner" do
-        subject.handle_message(message)
-        expect(Wonga::Daemon::WinRMRunner).to_not have_received(:new)
-      end
+      context "when instance exists" do
+        let(:instance) { instance_double("AWS::EC2::Instance", platform: "", :exists? => true, status: '') }
 
-      it "doesn't reboot machine" do
-        subject.handle_message(message)
-        expect(instance).to_not receive(:reboot)
+        it "doesn't create WinRMRunner" do
+          subject.handle_message(message)
+          expect(Wonga::Daemon::WinRMRunner).to_not have_received(:new)
+        end
+
+        it "doesn't reboot machine" do
+          subject.handle_message(message)
+          expect(instance).to_not receive(:reboot)
+        end
       end
     end
   end
 
   describe "#instance_reboot" do
-    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows").as_null_object }
+    let(:instance) { instance_double("AWS::EC2::Instance", id: 42, reboot: true) }
     let(:note) { "for rspec testing" }
 
     it "runs commands using win_rm_runner" do
@@ -124,7 +154,7 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
   end
 
   describe "#winrm_get_domain_state" do
-    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows").as_null_object }
+    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows", :exists? => true, status: '') }
 
     before(:each) do
       Wonga::Daemon::WinRMRunner.stub(:new).and_return(win_rm_runner)
@@ -142,7 +172,7 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
   end
 
   describe "#winrm_join_domain" do
-    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows").as_null_object }
+    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows", :exists? => true, status: '', id: 42, reboot: true) }
     let(:join_domain_data) { "hostname" }
 
     before(:each) do
@@ -186,7 +216,7 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
   end
 
   describe "#winrm_get_hostname" do
-    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows").as_null_object }
+    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows", :exists? => true, status: '') }
     let(:win_rm_runner) { instance_double("Wonga::Daemon::WinRMRunner").as_null_object }
     let(:get_hostname_data) { "some-hostname" }
 
@@ -205,7 +235,7 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
   end
 
   describe "#winrm_set_hostname" do
-    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows").as_null_object }
+    let(:instance) { instance_double("AWS::EC2::Instance", platform: "windows", :exists? => true, status: '') }
 
     before(:each) do
       win_rm_runner.stub(:run_commands).and_yield('test', set_hostname_data)
