@@ -51,7 +51,7 @@ module Wonga
         reboot_msg = "Rebooting instance #{instance.id} #{note}"
         reboot_cmd = "shutdown /r /t 0 /d P:2:4 /c \"#{reboot_msg}\""
         @logger.info "#{reboot_msg} via WinRM"
-        runner.run_commands(reboot_cmd) do |data|
+        runner.run_commands(reboot_cmd) do |_host, data|
           @logger.info data
         end
         @logger.info "#{reboot_msg} via AWS"
@@ -62,7 +62,7 @@ module Wonga
         @logger.info 'Get current domain status'
         verify_domain_cmd = 'NETDOM VERIFY %COMPUTERNAME% & echo ERRORLEVEL: %ERRORLEVEL%'
         get_domain_state_data = []
-        runner.run_commands(verify_domain_cmd) do |data|
+        runner.run_commands(verify_domain_cmd) do |_host, data|
           @logger.info data
           get_domain_state_data << data
         end
@@ -73,7 +73,7 @@ module Wonga
       def winrm_get_hostname(runner)
         @logger.info 'Get current hostname'
         current_hostname = nil
-        runner.run_commands('hostname') do |data|
+        runner.run_commands('hostname') do |_host, data|
           @logger.info data
           current_hostname = data
         end
@@ -89,7 +89,7 @@ module Wonga
         end
         @logger.info rename_cmd
         set_hostname_data = []
-        runner.run_commands(rename_cmd) do |data|
+        runner.run_commands(rename_cmd) do |_host, data|
           @logger.info data
           set_hostname_data << data
         end
@@ -112,7 +112,7 @@ module Wonga
         end
         @logger.info netdom_join_cmd
         join_domain_data = []
-        runner.run_commands(netdom_join_cmd) do |data|
+        runner.run_commands(netdom_join_cmd) do |_host, data|
           @logger.info data
           join_domain_data << data
         end

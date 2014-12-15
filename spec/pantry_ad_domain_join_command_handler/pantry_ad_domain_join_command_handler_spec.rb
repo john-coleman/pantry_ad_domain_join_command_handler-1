@@ -1,8 +1,7 @@
-require 'spec_helper'
 require_relative '../../pantry_ad_domain_join_command_handler/pantry_ad_domain_join_command_handler'
 require 'wonga/daemon/publisher'
 
-describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
+RSpec.describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
   let(:message) do
     {
       'pantry_request_id' => 45,
@@ -37,18 +36,17 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
   it_behaves_like 'handler'
 
   describe '#handle_message' do
-
     context 'for windows machine' do
       let(:instance) { instance_double('AWS::EC2::Instance', platform: 'windows', :exists? => true, status: '') }
       let(:aws_resource) { instance_double('Wonga::Daemon::AWSResource', find_server_by_id: instance) }
 
       before(:each) do
-        Wonga::Daemon::WinRMRunner.stub(:new).and_return(win_rm_runner)
-        Wonga::Daemon::AWSResource.stub(:new).and_return(aws_resource)
-        subject.stub(:winrm_get_hostname).and_return(host_name)
-        subject.stub(:winrm_join_domain)
-        subject.stub(:winrm_set_hostname)
-        subject.stub(:winrm_get_domain_state)
+        allow(Wonga::Daemon::WinRMRunner).to receive(:new).and_return(win_rm_runner)
+        allow(Wonga::Daemon::AWSResource).to receive(:new).and_return(aws_resource)
+        allow(subject).to receive(:winrm_get_hostname).and_return(host_name)
+        allow(subject).to receive(:winrm_join_domain)
+        allow(subject).to receive(:winrm_set_hostname)
+        allow(subject).to receive(:winrm_get_domain_state)
       end
 
       it 'adds info from message to win_rm_runner' do
@@ -125,12 +123,12 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
       let(:aws_resource) { instance_double('Wonga::Daemon::AWSResource', find_server_by_id: instance) }
 
       before(:each) do
-        Wonga::Daemon::WinRMRunner.stub(:new).and_return(win_rm_runner)
-        Wonga::Daemon::AWSResource.stub(:new).and_return(aws_resource)
-        subject.stub(:winrm_get_hostname).and_return(host_name)
-        subject.stub(:winrm_join_domain)
-        subject.stub(:winrm_set_hostname)
-        subject.stub(:winrm_get_domain_state)
+        allow(Wonga::Daemon::WinRMRunner).to receive(:new).and_return(win_rm_runner)
+        allow(Wonga::Daemon::AWSResource).to receive(:new).and_return(aws_resource)
+        allow(subject).to receive(:winrm_get_hostname).and_return(host_name)
+        allow(subject).to receive(:winrm_join_domain)
+        allow(subject).to receive(:winrm_set_hostname)
+        allow(subject).to receive(:winrm_get_domain_state)
       end
 
       context 'when instance exists' do
@@ -168,16 +166,16 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
     let(:instance) { instance_double('AWS::EC2::Instance', platform: 'windows', :exists? => true, status: '') }
 
     before(:each) do
-      Wonga::Daemon::WinRMRunner.stub(:new).and_return(win_rm_runner)
+      allow(Wonga::Daemon::WinRMRunner).to receive(:new).and_return(win_rm_runner)
     end
 
     it 'determines a machine is on a domain' do
-      win_rm_runner.stub(:run_commands).and_yield('has been verified')
+      allow(win_rm_runner).to receive(:run_commands).and_yield('', 'has been verified')
       expect(subject.winrm_get_domain_state(win_rm_runner)).to be_truthy
     end
 
     it 'determines a machine is not on a domain' do
-      win_rm_runner.stub(:run_commands).and_yield('has not been verified')
+      allow(win_rm_runner).to receive(:run_commands).and_yield('', 'has not been verified')
       expect(subject.winrm_get_domain_state(win_rm_runner)).to be_falsey
     end
   end
@@ -187,7 +185,7 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
     let(:join_domain_data) { 'hostname' }
 
     before(:each) do
-      win_rm_runner.stub(:run_commands).and_yield(join_domain_data)
+      allow(win_rm_runner).to receive(:run_commands).and_yield('', join_domain_data)
     end
 
     context 'for machine not on domain' do
@@ -232,7 +230,7 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
     let(:get_hostname_data) { 'some-hostname' }
 
     before(:each) do
-      win_rm_runner.stub(:run_commands).and_yield(get_hostname_data)
+      allow(win_rm_runner).to receive(:run_commands).and_yield('', get_hostname_data)
     end
 
     it 'runs commands via WinRM' do
@@ -249,7 +247,7 @@ describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
     let(:instance) { instance_double('AWS::EC2::Instance', platform: 'windows', :exists? => true, status: '') }
 
     before(:each) do
-      win_rm_runner.stub(:run_commands).and_yield(set_hostname_data)
+      allow(win_rm_runner).to receive(:run_commands).and_yield('', set_hostname_data)
     end
 
     context 'for machine on domain' do

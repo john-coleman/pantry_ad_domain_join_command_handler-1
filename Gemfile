@@ -11,7 +11,7 @@ group :test, :development do
   gem 'simplecov', require: false
   gem 'simplecov-rcov', require: false
   gem 'rspec'
-  gem 'pry-debugger'
   gem 'rake'
   gem 'rubocop'
+  gem 'transpec'
 end

@@ -11,4 +11,4 @@ handler = Wonga::Daemon::PantryAdDomainJoinCommandHandler.new(Wonga::Daemon.conf
                                                               Wonga::Daemon.publisher,
                                                               Wonga::Daemon.error_publisher,
                                                               Wonga::Daemon.logger)
-Wonga::Daemon.run(handler)
+Wonga::Daemon.run_without_daemon(handler)
