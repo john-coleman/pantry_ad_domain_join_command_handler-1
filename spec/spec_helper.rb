@@ -6,11 +6,7 @@ unless ENV['SKIP_COV']
     SimpleCov::Formatter::RcovFormatter
   ]
 end
-require 'aws'
 require 'spec_support/shared_daemons'
-
-AWS.config access_key_id: 'test', secret_access_key: 'test'
-AWS.stub!
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

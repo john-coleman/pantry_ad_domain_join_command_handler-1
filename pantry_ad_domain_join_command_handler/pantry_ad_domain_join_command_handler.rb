@@ -1,22 +1,21 @@
 require 'wonga/daemon/win_rm_runner'
-require 'wonga/daemon/aws_resource'
-require 'aws-sdk'
 
 module Wonga
   module Daemon
     class PantryAdDomainJoinCommandHandler
-      def initialize(ad_domain, ad_user, ad_password, publisher, error_publisher, logger)
-        @ad_domain = ad_domain
-        @ad_user = ad_user
-        @ad_password = ad_password
+      def initialize(ad_config, publisher, error_publisher, aws_resource, logger)
+        @ad_domain = ad_config['domain']
+        @ad_user = ad_config['user']
+        @ad_password = ad_config['password']
         @publisher = publisher
         @error_publisher = error_publisher
+        @aws_resource = aws_resource
         @logger = logger
       end
 
       def handle_message(message)
-        instance = AWSResource.new.find_server_by_id(message['instance_id'])
-        unless instance.exists? && instance.status != :terminated
+        instance = @aws_resource.find_server_by_id(message['instance_id'])
+        unless instance && instance.state.name != 'terminated'
           send_error_message(message)
           return
         end
@@ -75,7 +74,7 @@ module Wonga
         current_hostname = nil
         runner.run_commands('hostname') do |_host, data|
           @logger.info data
-          current_hostname = data
+          current_hostname ||= data.chomp if data.chomp != ''
         end
         current_hostname
       end
