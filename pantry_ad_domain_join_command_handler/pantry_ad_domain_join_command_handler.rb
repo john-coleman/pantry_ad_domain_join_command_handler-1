@@ -5,7 +5,7 @@ module Wonga
     class PantryAdDomainJoinCommandHandler
       def initialize(ad_config, publisher, error_publisher, aws_resource, logger)
         @ad_domain = ad_config['domain']
-        @ad_user = ad_config['user']
+        @ad_user = ad_config['username']
         @ad_password = ad_config['password']
         @publisher = publisher
         @error_publisher = error_publisher
