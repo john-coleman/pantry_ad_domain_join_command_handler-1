@@ -91,11 +91,6 @@ RSpec.describe Wonga::Daemon::PantryAdDomainJoinCommandHandler do
           subject.handle_message(message)
           expect(Wonga::Daemon::WinRMRunner).to_not have_received(:new)
         end
-
-        it "doesn't reboot machine" do
-          subject.handle_message(message)
-          expect(instance).to_not receive(:reboot)
-        end
       end
 
       context 'when instance is terminated' do
